@@ -1,0 +1,345 @@
+<!DOCTYPE html>
+<html lang="zh-Hant">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>救護知識冒險島｜104–114年高級救護技術員考古題闖關練習</title>
+  <link rel="stylesheet" href="styles.css" />
+</head>
+<body>
+  <!-- 頂部導覽列 -->
+  <header class="top-nav" role="banner">
+    <div class="brand">
+      <span class="brand-icon" aria-hidden="true">🚑</span>
+      <div>
+        <h1 class="brand-title">救護知識冒險島</h1>
+        <p class="brand-subtitle">104–114年 EMT-P 考古題自主練習與闖關系統</p>
+      </div>
+    </div>
+    <nav class="nav-actions" aria-label="主要功能切換">
+      <button type="button" id="btnNavHome" class="nav-btn active" aria-pressed="true">🏰 闖關首頁</button>
+      <button type="button" id="btnNavWrongBook" class="nav-btn">📕 錯題複習本 <span id="wrongCountBadge" class="badge">0</span></button>
+      <button type="button" id="btnNavReviewList" class="nav-btn">🔍 待確認題目 <span id="reviewCountBadge" class="badge badge-warn">0</span></button>
+      <label class="reduced-motion-toggle" title="關閉或減少畫面戰鬥動畫特效">
+        <input type="checkbox" id="chkReduceMotion" />
+        <span>減少動畫特效</span>
+      </label>
+    </nav>
+  </header>
+
+  <main class="main-container" role="main">
+    <!-- 載入失敗錯誤區塊 -->
+    <section id="errorBanner" class="error-banner hidden" role="alert" aria-live="assertive">
+      <div class="error-icon" aria-hidden="true">⚠️</div>
+      <div class="error-content">
+        <h2>題庫資料載入失敗</h2>
+        <p id="errorMessageText">無法讀取 <code>data/questions.json</code>。請確認是否透過本機 HTTP 伺服器或 GitHub Pages 開啟網站。</p>
+        <div class="error-actions">
+          <button type="button" id="btnRetryLoad" class="btn btn-primary">🔄 重新載入題庫</button>
+        </div>
+      </div>
+    </section>
+
+    <!-- 畫面 1：首頁與篩選設定 -->
+    <section id="screenSetup" class="screen">
+      <div class="hero-card pixel-border">
+        <div class="hero-visual" aria-hidden="true">
+          <!-- 像素冒險風格 SVG 救護探索者 -->
+          <svg class="hero-svg" viewBox="0 0 120 100" xmlns="http://www.w3.org/2000/svg">
+            <rect x="8" y="10" width="104" height="80" rx="8" fill="#1e293b" stroke="#38bdf8" stroke-width="3"/>
+            <!-- 救護探索者像素角色 -->
+            <rect x="24" y="26" width="24" height="10" fill="#ef4444"/>
+            <rect x="33" y="28" width="6" height="6" fill="#ffffff"/>
+            <rect x="26" y="36" width="20" height="16" fill="#fde047"/>
+            <rect x="30" y="40" width="4" height="4" fill="#0f172a"/>
+            <rect x="38" y="40" width="4" height="4" fill="#0f172a"/>
+            <rect x="22" y="52" width="28" height="22" fill="#0284c7"/>
+            <rect x="33" y="56" width="6" height="14" fill="#f8fafc"/>
+            <rect x="29" y="60" width="14" height="6" fill="#f8fafc"/>
+            <!-- 知識關卡怪獸/目標 -->
+            <rect x="74" y="32" width="24" height="24" rx="4" fill="#a855f7"/>
+            <rect x="79" y="39" width="4" height="5" fill="#fef08a"/>
+            <rect x="89" y="39" width="4" height="5" fill="#fef08a"/>
+            <rect x="81" y="49" width="10" height="3" fill="#0f172a"/>
+            <path d="M55 50 L68 50" stroke="#facc15" stroke-width="3" stroke-dasharray="4 3"/>
+          </svg>
+        </div>
+        <div class="hero-info">
+          <h2>歡迎來到「救護知識冒險島」！</h2>
+          <p>
+            本系統專為準備課堂測驗與甄試的學員設計，收錄 <strong>104–114 年度高級救護技術員（EMT-P）</strong>歷史考古題。
+            請先選擇下方「年度」、「章節分類」與「每回合題數」開始闖關！
+          </p>
+          <div class="rule-pills">
+            <span class="pill">❤️ 初始 10 顆愛心（答錯 -1）</span>
+            <span class="pill">⭐ 答對每題 +100 分</span>
+            <span class="pill">🎁 每滿 5 題且第 5 題答對可開寶箱補血</span>
+            <span class="pill">📕 自動記錄錯題本供複習</span>
+          </div>
+          <p class="disclaimer-note">
+            ※ 免責聲明：本網站為歷史考古題練習用途，遊戲成績僅代表本次作答表現，不代表臨床急救能力或正式考試通過保證；歷史法規與醫療指引請以最新教材與講師核對為準。
+          </p>
+        </div>
+      </div>
+
+      <!-- 篩選控制面板 -->
+      <div class="filter-grid">
+        <!-- 年度選擇 -->
+        <div class="filter-card pixel-border">
+          <div class="filter-header">
+            <h3>1. 選擇考試年度</h3>
+            <div class="filter-quick-btns">
+              <button type="button" id="btnSelectAllYears" class="btn-small">全選年度</button>
+              <button type="button" id="btnClearAllYears" class="btn-small">清除</button>
+            </div>
+          </div>
+          <div id="yearCheckboxes" class="checkbox-grid" role="group" aria-label="選擇考試年度"></div>
+        </div>
+
+        <!-- 章節分類選擇 -->
+        <div class="filter-card pixel-border">
+          <div class="filter-header">
+            <h3>2. 選擇主題章節分類</h3>
+            <div class="filter-quick-btns">
+              <button type="button" id="btnSelectAllChapters" class="btn-small">全選章節</button>
+              <button type="button" id="btnClearAllChapters" class="btn-small">清除</button>
+            </div>
+          </div>
+          <div id="chapterCheckboxes" class="checkbox-grid chapter-grid" role="group" aria-label="選擇主題章節分類"></div>
+        </div>
+      </div>
+
+      <!-- 回合設定與題池統計 -->
+      <div class="launch-bar pixel-border">
+        <div class="pool-stats" aria-live="polite">
+          <div class="stat-box stat-valid">
+            <span class="stat-label">符合條件有效題池</span>
+            <strong id="statValidPoolCount" class="stat-number">0</strong>
+            <span class="stat-unit">題（可計分）</span>
+          </div>
+          <div class="stat-box stat-review">
+            <span class="stat-label">符合條件待確認題</span>
+            <strong id="statReviewPoolCount" class="stat-number">0</strong>
+            <span class="stat-unit">題（已排除計分）</span>
+          </div>
+        </div>
+
+        <div class="launch-controls">
+          <div class="count-selector">
+            <label for="selectQuestionCount"><strong>3. 每回合題數：</strong></label>
+            <select id="selectQuestionCount" class="select-input">
+              <option value="5">5 題（快速熱身）</option>
+              <option value="10" selected>10 題（預設標準關卡）</option>
+              <option value="20">20 題（進階挑戰）</option>
+              <option value="50">50 題（半卷模擬）</option>
+              <option value="100">100 題（全卷挑戰）</option>
+              <option value="all">全部符合條件有效題</option>
+            </select>
+          </div>
+          <button type="button" id="btnStartQuiz" class="btn btn-primary btn-large">⚔️ 開始闖關測驗</button>
+        </div>
+      </div>
+
+      <p id="poolWarningMsg" class="pool-warning hidden" role="status" aria-live="polite"></p>
+    </section>
+
+    <!-- 畫面 2：作答與闖關畫面 -->
+    <section id="screenQuiz" class="screen hidden" aria-label="作答闖關區">
+      <!-- 遊戲狀態列 (HUD) -->
+      <div class="hud-bar pixel-border">
+        <div class="hud-item hud-hearts" aria-label="剩餘愛心">
+          <span class="hud-label">生命值：</span>
+          <div id="heartsDisplay" class="hearts-container"></div>
+          <span id="heartsText" class="hud-val">10 / 10</span>
+        </div>
+        <div class="hud-item hud-progress">
+          <span class="hud-label">關卡進度：</span>
+          <strong id="progressText" class="hud-val">第 1 / 10 題</strong>
+          <span id="chestProgressHint" class="chest-hint" title="每完成 5 題且第 5 題答對可獲得寶箱">🎁 寶箱進度：1/5</span>
+        </div>
+        <div class="hud-item hud-score">
+          <span class="hud-label">冒險積分：</span>
+          <strong id="scoreText" class="hud-val score-num">0</strong>
+          <span class="hud-sub">（正確率：<span id="liveAccuracyText">尚無結果</span>）</span>
+        </div>
+        <div class="hud-actions">
+          <button type="button" id="btnRestartQuiz" class="btn-small btn-outline">🔄 重新設定／重開回合</button>
+        </div>
+      </div>
+
+      <!-- 簡短角色互動動畫條（不遮擋題目閱讀區） -->
+      <div id="battleStage" class="battle-stage pixel-border">
+        <div id="heroSprite" class="fighter hero-fighter">
+          <span class="fighter-avatar" aria-hidden="true">🧑‍⚕️</span>
+          <span class="fighter-name">救護探索者</span>
+        </div>
+        <div id="battleStatusText" class="battle-status" aria-live="polite">遭遇知識守門員！請仔細閱讀題幹後選擇最適當答案。</div>
+        <div id="monsterSprite" class="fighter monster-fighter">
+          <span class="fighter-name">急救考題守衛</span>
+          <span class="fighter-avatar" aria-hidden="true">👾</span>
+        </div>
+      </div>
+
+      <!-- 題目不足提示條 -->
+      <div id="shortfallNotice" class="info-banner hidden" role="status"></div>
+
+      <!-- 題目卡片 -->
+      <article class="question-card pixel-border">
+        <header class="question-meta">
+          <span id="qMetaYear" class="meta-tag tag-year">114年</span>
+          <span id="qMetaChapter" class="meta-tag tag-chapter">未分類</span>
+          <span id="qMetaNumber" class="meta-tag tag-num">原題號：第 1 題</span>
+          <span id="qMetaId" class="meta-tag tag-id">ID: 114-001</span>
+        </header>
+
+        <div id="questionStem" class="question-stem"></div>
+
+        <!-- 題幹附圖容器 -->
+        <div id="questionImagesContainer" class="question-images hidden"></div>
+
+        <!-- 選項列表 -->
+        <div id="optionsContainer" class="options-list" role="radiogroup" aria-label="試題選項"></div>
+
+        <!-- 確認答案與下一題按鈕列 -->
+        <div class="quiz-action-bar">
+          <span class="keyboard-hint">💡 鍵盤快捷鍵：按 <kbd>1</kbd>～<kbd>4</kbd> 或 <kbd>A</kbd>～<kbd>D</kbd> 選擇選項，<kbd>Enter</kbd> 確認答案／下一題</span>
+          <div class="quiz-main-btns">
+            <button type="button" id="btnSubmitAnswer" class="btn btn-primary btn-large" disabled>✅ 確認答案</button>
+            <button type="button" id="btnNextQuestion" class="btn btn-accent btn-large hidden">➡️ 下一題</button>
+          </div>
+        </div>
+
+        <!-- 作答回饋與解析區 -->
+        <section id="feedbackPanel" class="feedback-panel hidden" aria-live="polite">
+          <div id="feedbackHeader" class="feedback-header"></div>
+          <div class="feedback-body">
+            <div class="answer-comparison">
+              <div class="ans-item">
+                <span class="ans-label">您的作答：</span>
+                <strong id="userAnswerDisplay" class="ans-badge">-</strong>
+              </div>
+              <div class="ans-item">
+                <span class="ans-label">來源標準答案：</span>
+                <strong id="correctAnswerDisplay" class="ans-badge">-</strong>
+              </div>
+            </div>
+            <div id="SupplementBlock" class="supplement-block hidden"></div>
+            <div class="explanation-block">
+              <div class="explanation-title">
+                📖 來源解析 <span class="verify-badge">※ 來源解析尚待講師核對，請以最新教材與法規為準</span>
+              </div>
+              <div id="explanationText" class="explanation-content"></div>
+            </div>
+            <div id="sourceInfoText" class="source-footnote"></div>
+          </div>
+        </section>
+      </article>
+    </section>
+
+    <!-- 畫面 3：回合結算畫面 -->
+    <section id="screenResult" class="screen hidden" aria-label="回合結算報告">
+      <div class="result-card pixel-border">
+        <div id="resultBadgeIcon" class="result-icon" aria-hidden="true">🏆</div>
+        <h2 id="resultTitle" class="result-title">恭喜過關！完成救護知識探險</h2>
+        <p id="resultSubtitle" class="result-subtitle">您已順利完成本回合所有題目並守住生命值！</p>
+
+        <div class="result-stats-grid">
+          <div class="res-stat">
+            <span class="res-label">冒險總積分</span>
+            <strong id="resScore" class="res-value highlight-score">0</strong>
+          </div>
+          <div class="res-stat">
+            <span class="res-label">作答正確率</span>
+            <strong id="resAccuracy" class="res-value highlight-acc">0%</strong>
+          </div>
+          <div class="res-stat">
+            <span class="res-label">剩餘愛心</span>
+            <strong id="resHearts" class="res-value">10 / 10</strong>
+          </div>
+          <div class="res-stat">
+            <span class="res-label">已作答題數</span>
+            <strong id="resAnswered" class="res-value">0</strong>
+          </div>
+          <div class="res-stat">
+            <span class="res-label">答對題數</span>
+            <strong id="resCorrect" class="res-value text-success">0</strong>
+          </div>
+          <div class="res-stat">
+            <span class="res-label">答錯題數</span>
+            <strong id="resWrong" class="res-value text-danger">0</strong>
+          </div>
+          <div class="res-stat">
+            <span class="res-label">未作答題數</span>
+            <strong id="resUnanswered" class="res-value">0</strong>
+          </div>
+        </div>
+
+        <div class="result-actions">
+          <button type="button" id="btnPlayAgainSame" class="btn btn-primary btn-large">🔁 用相同條件再玩一回合</button>
+          <button type="button" id="btnBackToSetup" class="btn btn-secondary btn-large">⚙️ 返回首頁調整篩選條件</button>
+          <button type="button" id="btnResultToWrongBook" class="btn btn-outline btn-large">📕 前往錯題複習本</button>
+        </div>
+      </div>
+    </section>
+
+    <!-- 畫面 4：個人特色 — 錯題複習本 -->
+    <section id="screenWrongBook" class="screen hidden" aria-label="錯題複習本">
+      <div class="panel-card pixel-border">
+        <div class="panel-header">
+          <div>
+            <h2>📕 個人錯題複習本</h2>
+            <p>系統會自動在瀏覽器本機（<code>localStorage</code>）記錄您答錯過的題目、最後作答選項與累計錯誤次數。</p>
+          </div>
+          <div class="panel-actions">
+            <button type="button" id="btnStartWrongPractice" class="btn btn-primary">⚔️ 針對錯題進行闖關複習</button>
+            <button type="button" id="btnClearWrongBook" class="btn btn-danger-outline">🗑️ 清除全部錯題紀錄</button>
+          </div>
+        </div>
+        <div id="wrongBookMissingNotice" class="info-banner hidden"></div>
+        <div id="wrongBookList" class="records-list"></div>
+      </div>
+    </section>
+
+    <!-- 畫面 5：待確認題目清單檢視器 -->
+    <section id="screenReviewList" class="screen hidden" aria-label="待確認題目清單">
+      <div class="panel-card pixel-border">
+        <div class="panel-header">
+          <div>
+            <h2>🔍 待確認／排除計分題目清單</h2>
+            <p>以下題目因「官方標示送分」、「原始 Excel 缺選項文字」、「題幹提及圖片但原檔未附圖」或「多答案記法未加括號」，已依規範排除於計分題池之外，供學員與講師檢視核對。</p>
+          </div>
+        </div>
+        <div id="reviewQuestionsList" class="records-list"></div>
+      </div>
+    </section>
+  </main>
+
+  <!-- 寶箱彈窗 Modal -->
+  <div id="chestModal" class="modal-backdrop hidden" role="dialog" aria-modal="true" aria-labelledby="chestModalTitle">
+    <div class="modal-card pixel-border">
+      <div class="modal-icon" aria-hidden="true">🎁</div>
+      <h3 id="chestModalTitle">獲得補給寶箱！</h3>
+      <p id="chestModalDesc">您已完成本組 5 題且第 5 題答對！點擊下方按鈕開啟醫療補給寶箱回復生命值。</p>
+      <div id="chestRewardResult" class="chest-reward-box hidden"></div>
+      <div class="modal-actions">
+        <button type="button" id="btnOpenChest" class="btn btn-accent btn-large">✨ 開啟寶箱領取愛心</button>
+        <button type="button" id="btnCloseChestModal" class="btn btn-primary btn-large hidden">繼續冒險</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- 確認彈窗 Modal (用於重開回合、清除錯題本確認) -->
+  <div id="confirmModal" class="modal-backdrop hidden" role="dialog" aria-modal="true" aria-labelledby="confirmModalTitle">
+    <div class="modal-card pixel-border">
+      <h3 id="confirmModalTitle">確認操作</h3>
+      <p id="confirmModalMessage">確定要執行此操作嗎？</p>
+      <div class="modal-actions">
+        <button type="button" id="btnConfirmCancel" class="btn btn-secondary">取消並保留現狀</button>
+        <button type="button" id="btnConfirmOk" class="btn btn-primary">確定執行</button>
+      </div>
+    </div>
+  </div>
+
+  <script src="app.js"></script>
+</body>
+</html>
